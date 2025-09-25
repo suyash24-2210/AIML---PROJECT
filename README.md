@@ -1,180 +1,154 @@
-# AIML---PROJECT
-# Executive Summary
+# Autonomous Delivery Agent
 
-This report presents the analysis of an autonomous delivery agent system that navigates a 2D grid city to deliver packages. The system implements multiple pathfinding algorithms including uninformed search (BFS, Uniform Cost Search), informed search (A\* with admissible heuristics), and local search replanning strategies (hill-climbing with random restarts, simulated annealing).
+An autonomous delivery agent that navigates a 2D grid city to deliver packages using various pathfinding algorithms including BFS, Uniform-cost search, A\*, and local search replanning strategies.
 
-## Environment Model
+## Features
 
-### Grid-Based World Representation
+- **Multiple Pathfinding Algorithms**: BFS, Uniform-cost search, A\* with admissible heuristics
+- **Dynamic Replanning**: Hill-climbing with random restarts for handling moving obstacles
+- **Environment Modeling**: Static obstacles, varying terrain costs, dynamic moving obstacles
+- **Experimental Comparison**: Performance analysis across different algorithms and map sizes
+- **Visualization**: Real-time visualization of agent navigation and pathfinding
 
-The environment is modeled as a 2D grid where each cell represents a location in the city. The grid supports:
+## Installation
 
-- **Static Obstacles**: Impassable cells (represented by '#' symbol)
-- **Varying Terrain Costs**: Different movement costs (1-9, represented by digits)
-- **Dynamic Moving Obstacles**: Vehicles that move according to deterministic schedules (A-Z symbols)
+1. Clone the repository:
 
-### Agent Movement
-
-The agent moves using 4-connected movement (up, down, left, right) with integer movement costs ≥ 1. The agent can observe the current state of dynamic obstacles and their future positions according to known schedules.
-
-## Agent Design
-
-### Rational Decision Making
-
-The agent is designed to be rational, choosing actions that maximize delivery efficiency under constraints:
-
-1. **Time Constraints**: Minimizing delivery time by finding optimal paths
-2. **Fuel Constraints**: Minimizing movement costs through efficient pathfinding
-3. **Dynamic Obstacles**: Adapting to moving vehicles through replanning
-
-### Algorithm Implementation
-
-#### Uninformed Search Algorithms
-
-**Breadth-First Search (BFS)**
-
-- Guarantees shortest path in terms of number of steps
-- Time Complexity: O(V + E)
-- Space Complexity: O(V)
-- Best for: Environments with uniform costs
-
-**Uniform Cost Search (UCS)**
-
-- Guarantees optimal path in terms of total cost
-- Time Complexity: O(b^(C\*/ε))
-- Space Complexity: O(b^(C\*/ε))
-- Best for: Environments with varying terrain costs
-
-#### Informed Search Algorithm
-
-**A\* with Admissible Heuristics**
-
-- Combines UCS with heuristic guidance
-- Uses Manhattan distance heuristic (admissible for 4-connected grids)
-- Time Complexity: O(b^d)
-- Space Complexity: O(b^d)
-- Best for: Most scenarios where optimal solutions are required
-
-#### Local Search Replanning
-
-**Hill-Climbing with Random Restarts**
-
-- Designed for dynamic environments
-- Uses A\* for initial pathfinding, then improves locally
-- Handles dynamic obstacles through frequent replanning
-- Best for: Environments with unpredictable changes
-
-**Simulated Annealing**
-
-- Probabilistic local search with cooling schedule
-- Can escape local optima through probabilistic acceptance
-- Good for: Complex environments with many local optima
-
-## Heuristics Used
-
-### Manhattan Distance Heuristic
-
-```
-h(n) = |x_goal - x_current| + |y_goal - y_current|
+```bash
+git clone <repository-url>
+cd autonomous-delivery-agent
 ```
 
-- **Admissible**: Never overestimates the true cost
-- **Consistent**: Satisfies triangle inequality
-- **Optimal**: Guarantees optimal solutions when used with A\*
+2. Install dependencies:
 
-### Euclidean Distance Heuristic
-
-```
-h(n) = sqrt((x_goal - x_current)² + (y_goal - y_current)²)
+```bash
+pip install -r requirements.txt
 ```
 
-- **Admissible**: For 4-connected grids
-- **Not Consistent**: Can lead to suboptimal solutions
-- **Use Case**: When diagonal movement is considered
+## Quick Start
 
-## Experimental Results
+### Run the Demo
 
-### Test Scenarios
+```bash
+python demo.py
+```
 
-1. **Small Map (10x10)**: Simple environment with basic obstacles
-2. **Medium Map (20x20)**: Complex environment with obstacle patterns
-3. **Large Map (50x50)**: Large-scale environment with many obstacles
-4. **Dynamic Map (20x20)**: Environment with moving vehicles
+### Basic Usage
 
-### Performance Metrics
+```bash
+python main.py --algorithm astar --map maps/small.txt --start 0,0 --goal 9,9
+```
 
-| Algorithm | Success Rate | Avg Path Cost | Avg Nodes Expanded | Avg Execution Time |
-| --------- | ------------ | ------------- | ------------------ | ------------------ |
-| BFS       | 100%         | 18.2          | 45.3               | 0.0023s            |
-| UCS       | 100%         | 15.8          | 38.7               | 0.0018s            |
-| A\*       | 100%         | 15.8          | 22.1               | 0.0012s            |
-| Local     | 95%          | 16.2          | 15.8               | 0.0034s            |
+### Available Algorithms
 
-### Dynamic Replanning Results
+- `bfs`: Breadth-First Search (shortest path in steps)
+- `bfs_cost`: BFS with cost tracking
+- `ucs`: Uniform-Cost Search (optimal cost path)
+- `ucs_opt`: Optimized UCS implementation
+- `astar`: A\* with Manhattan distance heuristic (recommended)
+- `astar_weighted`: Weighted A\* for faster suboptimal paths
+- `local`: Hill-climbing with random restarts (dynamic environments)
+- `sa`: Simulated annealing
 
-The local search algorithms successfully demonstrated dynamic replanning capabilities:
+### Map Format
 
-- **Replanning Frequency**: Average 2.3 replans per dynamic scenario
-- **Adaptation Time**: < 0.01s per replanning cycle
-- **Success Rate**: 95% in dynamic environments
+Maps are text files where:
 
-## Analysis and Conclusions
+- `.` = empty cell (cost 1)
+- `#` = obstacle (impassable)
+- `2-9` = terrain with movement cost 2-9
+- `A-Z` = dynamic obstacles (moving vehicles)
 
-### When Each Method Performs Better
+Example:
 
-#### BFS (Breadth-First Search)
+```
+.2.#
+..3.
+#..A
+```
 
-- **Best For**: Environments with uniform movement costs
-- **Advantages**: Simple, guarantees shortest path in steps
-- **Limitations**: Inefficient for varying terrain costs
-- **Use Case**: Simple delivery scenarios with flat terrain
+### Command Line Options
 
-#### UCS (Uniform Cost Search)
+```bash
+python main.py [OPTIONS]
 
-- **Best For**: Environments with varying terrain costs
-- **Advantages**: Optimal cost solutions, handles terrain variations
-- **Limitations**: Can be slow on large maps
-- **Use Case**: Delivery through varied terrain (hills, rough roads)
+Required for single algorithm:
+  --algorithm ALG     Algorithm to use
+  --map MAP_FILE      Path to map file
+  --start X,Y         Start coordinates
+  --goal X,Y          Goal coordinates
 
-#### A* (A* Search)
+Optional:
+  --visualize         Enable visualization
+  --time-step T       Time step for dynamic obstacles
+  --weight W          Weight for weighted A\* (default: 1.5)
+  --output FILE       Save results to file
 
-- **Best For**: Most general-purpose pathfinding scenarios
-- **Advantages**: Optimal solutions with heuristic guidance, efficient
-- **Limitations**: Requires admissible heuristic
-- **Use Case**: Primary choice for most delivery scenarios
+Comparison and Analysis:
+  --compare           Compare all algorithms
+  --benchmark         Run comprehensive benchmark tests
+  --dynamic-demo      Run dynamic replanning demonstration
+```
 
-#### Local Search Replanning
+### Usage Examples
 
-- **Best For**: Dynamic environments with moving obstacles
-- **Advantages**: Adapts to changing conditions, handles uncertainty
-- **Limitations**: May find suboptimal solutions
-- **Use Case**: Urban delivery with traffic, construction zones
+```bash
+# Find path with A* and visualize
+python main.py --algorithm astar --map maps/small.txt --start 0,0 --goal 9,9 --visualize
 
-### Performance Trade-offs
+# Compare all algorithms
+python main.py --compare --map maps/medium.txt --start 0,0 --goal 19,19
 
-1. **Optimality vs. Speed**: A\* provides optimal solutions efficiently, while local search sacrifices optimality for adaptability
+# Run benchmark tests
+python main.py --benchmark
 
-2. **Memory vs. Computation**: BFS uses more memory but simpler computation, while UCS uses more computation but less memory
+# Dynamic replanning demo
+python main.py --dynamic-demo --algorithm local
 
-3. **Static vs. Dynamic**: Traditional algorithms excel in static environments, while local search excels in dynamic scenarios
+# Run experiments and save results
+python main.py --benchmark --output results.json
+```
 
-### Recommendations
+## Project Structure
 
-1. **Primary Algorithm**: Use A\* with Manhattan distance for most delivery scenarios
-2. **Dynamic Environments**: Use hill-climbing with random restarts for areas with moving obstacles
-3. **Resource Constraints**: Use UCS when memory is limited
-4. **Simple Scenarios**: Use BFS for basic environments with uniform costs
+```
+autonomous-delivery-agent/
+├── main.py                 # Main entry point
+├── src/
+│   ├── environment.py      # Environment model
+│   ├── algorithms/         # Pathfinding algorithms
+│   │   ├── bfs.py
+│   │   ├── ucs.py
+│   │   ├── astar.py
+│   │   └── local_search.py
+│   └── visualization.py    # Visualization tools
+├── maps/                   # Test maps
+│   ├── small.txt
+│   ├── medium.txt
+│   ├── large.txt
+│   └── dynamic.txt
+├── tests/                  # Unit tests
+├── results/                # Experimental results
+└── report/                 # Analysis report
+```
 
-## Future Improvements
+## Testing
 
-1. **Multi-Agent Coordination**: Extend system for multiple delivery agents
-2. **Real-Time Constraints**: Add real-time pathfinding capabilities
-3. **Machine Learning**: Integrate learning algorithms for better heuristic estimation
-4. **3D Environments**: Extend to 3D pathfinding for multi-level buildings
+Run unit tests:
 
-## Conclusion
+```bash
+python -m pytest tests/
+```
 
-The autonomous delivery agent system successfully demonstrates the effectiveness of different pathfinding algorithms across various scenarios. A\* emerges as the most versatile algorithm for general use, while local search replanning provides essential capabilities for dynamic environments. The system achieves the goal of rational decision-making under constraints while maintaining computational efficiency.
+Run benchmark comparisons:
 
-The experimental results validate the theoretical analysis and provide practical insights for real-world deployment of autonomous delivery systems.
+```bash
+python main.py --benchmark
+```
+
+## Results
+
+Experimental results and analysis are available in the `results/` directory and the accompanying report.
+
+
 
